@@ -3,6 +3,8 @@ const router = Router();
 
 const User = require('../models/User');
 
+const Admin = require('../models/Admin');
+
 const jwt = require('jsonwebtoken');
 
 //EMPR
@@ -10,7 +12,13 @@ const empresa = require("../controllers/empresa.controller");
 // Para la consulta no verificamos el token
 router.get("/empr", empresa.getEmpresas);
 
+router.get("/empr/distinct", empresa.getEmpresasDistinct);
+
+router.get("/empr/distinctdos", empresa.getEmpresasDistinctdos);
+
 router.get("/empr/filter/:pais", empresa.getEmpresasFilter);
+
+router.get("/empr/filterdos/:localidad", empresa.getEmpresasFilterdos);
 
 router.post("/empr", verifyToken, empresa.createEmpresa);
 
@@ -19,6 +27,19 @@ router.get("/empr/:id", verifyToken, empresa.getEmpresa);
 router.put("/empr/:id", verifyToken, empresa.editEmpresa);
 
 router.delete("/empr/:id", verifyToken, empresa.deleteEmpresa);
+
+//USR
+const user = require("../controllers/user.controller");
+// Para la consulta no verificamos el token
+router.get("/usr", user.getUsers);
+
+router.post("/usr", verifyToken, user.createUser);
+
+router.get("/usr/:id", verifyToken, user.getUser);
+
+router.put("/usr/:id", verifyToken, user.editUser);
+
+router.delete("/usr/:id", verifyToken, user.deleteUser);
 
 // FIN EMPR
 
@@ -34,6 +55,14 @@ router.post('/signup', async (req, res) => {
     res.status(200).json({token});
 });
 
+router.post('/signupdos', async (req, res) => {
+    const { email, password } = req.body;
+    const newAdmin = new Admin({email, password});
+    await newAdmin.save();
+	const token = await jwt.sign({_id: newAdmin._id}, 'secretkey');
+    res.status(200).json({token});
+});
+
 router.post('/signin', async (req, res) => {
     const { email, password } = req.body;
 
@@ -42,6 +71,23 @@ router.post('/signin', async (req, res) => {
     if (user.password !== password) return res.status(401).send('Wrong Password');
 
 	const token = jwt.sign({_id: user._id}, 'secretkey');
+
+    //Probamos extraer la información almacenada
+    const payload = await jwt.verify(token, 'secretkey');
+    console.log(payload)
+    console.log(`el id es: ${payload._id}`)
+
+    return res.status(200).json({token});
+});
+
+router.post('/signindos', async (req, res) => {
+    const { email, password } = req.body;
+
+    const admin = await Admin.findOne({email});
+    if (!admin) return res.status(401).send('The email doen\' exists');
+    if (admin.password !== password) return res.status(501).send('Wrong Password');
+
+	const token = jwt.sign({_id: admin._id}, 'secretkey');
 
     //Probamos extraer la información almacenada
     const payload = await jwt.verify(token, 'secretkey');

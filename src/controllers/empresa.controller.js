@@ -7,9 +7,55 @@ empresaCtrl.getEmpresas = async (req, res, next) => {
   res.json(empresas);
 };
 
+empresaCtrl.getEmpresasDistinct = async (req, res, next) => {
+  const empresas = await Empresa.aggregate([
+    {
+    $group: {
+        _id: "$pais" 
+    }
+    },
+    {
+        $project: {
+            _id: 0,
+            pais: "$_id"
+        }
+    }
+]);
+  res.json(empresas);
+};
+
+empresaCtrl.getEmpresasDistinctdos = async (req, res, next) => {
+  const empresas = await Empresa.aggregate([
+    {
+    $group: {
+        _id: "$localidad" 
+    }
+    },
+    {
+        $project: {
+            _id: 0,
+            localidad: "$_id"
+        }
+    }
+]);
+  res.json(empresas);
+};
+
 empresaCtrl.getEmpresasFilter = async (req, res, next) => {
   const { pais } = req.params;
   const empresas = await Empresa.find({pais: pais});
+  res.json(empresas);
+};
+
+empresaCtrl.getEmpresasFilterdos = async (req, res, next) => {
+  const { localidad } = req.params;
+  const empresas = await Empresa.find({localidad: localidad});
+  res.json(empresas);
+};
+
+empresaCtrl.getEmpresasFilterdos = async (req, res, next) => {
+  const { localidad } = req.params;
+  const empresas = await Empresa.find({localidad: localidad});
   res.json(empresas);
 };
 
